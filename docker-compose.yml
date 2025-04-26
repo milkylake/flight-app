@@ -1,0 +1,88 @@
+services:
+  # --- Nginx Web Server ---
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: flight_nginx
+    ports:
+      - "${NGINX_PORT:-80}:80" # Используем переменную из .env, по умолчанию 80
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./frontend/.next/static:/var/www/frontend/_next/static
+      # Отдаем статику Next.js напрямую (оптимизация)
+      # Если есть папка public в Next.js, монтируем и ее
+      - ./frontend/public:/var/www/frontend/public
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - flight_network
+
+  # --- Frontend (Next.js) ---
+  frontend:
+    container_name: flight_frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile # Будет создан ниже
+    volumes:
+      - ./frontend:/app # Для разработки с hot-reload
+      - /app/node_modules # Изолируем node_modules в контейнере
+      - /app/.next # Изолируем .next в контейнере
+    environment:
+      # Передаем API ключ Яндекса
+#      - NEXT_PUBLIC_YANDEX_MAPS_API_KEY=${NEXT_PUBLIC_YANDEX_MAPS_API_KEY}
+      # Указываем Next.js работать на порту 3000 внутри контейнера
+      - PORT=3000
+    # Если не используем hot-reload в проде, команда будет 'npm run start'
+    command: npm run dev # или npm run start для продакшена
+    expose:
+      - "3000" # Открываем порт внутри сети Docker
+    networks:
+      - flight_network
+    depends_on:
+      - backend # Фронтенд может зависеть от API для Server Side запросов
+
+  # --- Backend (PHP-FPM) ---
+  backend:
+    container_name: flight_backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile # Будет создан ниже
+    volumes:
+      - ./backend:/var/www/html # Монтируем код PHP
+    environment:
+      # Переменные для подключения к БД (используются в PHP)
+      - DB_HOST=db
+      - DB_DATABASE=${MYSQL_DATABASE}
+      - DB_USER=${MYSQL_USER}
+      - DB_PASSWORD=${MYSQL_PASSWORD}
+      # Другие переменные для PHP
+      # - APP_ENV=${APP_ENV:-production}
+    depends_on:
+      - db
+    networks:
+      - flight_network
+
+  # --- Database (MySQL) ---
+  db:
+    image: mysql:8.0
+    container_name: flight_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql # Сохранение данных БД
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql # Скрипт инициализации
+    ports:
+      - "3307:3306" # Пробрасываем порт наружу для отладки (опционально)
+    networks:
+      - flight_network
+
+networks:
+  flight_network:
+    driver: bridge
+
+volumes:
+  mysql_data: # Именованный том для данных MySQL

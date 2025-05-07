@@ -1,9 +1,9 @@
 export interface Airport {
   id: number;
   iata_code: string;
-  name: string; // Название аэропорта
+  name: string;
   city: string;
   country: string;
-  latitude: string; // Можно преобразовать в number при необходимости
+  latitude: string;
   longitude: string;
 }

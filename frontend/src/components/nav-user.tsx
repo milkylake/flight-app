@@ -1,5 +1,6 @@
 'use client';
 
+import { FC } from 'react';
 import {
   BellIcon,
   CreditCardIcon,
@@ -7,7 +8,6 @@ import {
   MoreVerticalIcon,
   UserCircleIcon
 } from 'lucide-react';
-
 import {
   Avatar,
   AvatarFallback,
@@ -29,15 +29,16 @@ import {
   useSidebar
 } from '@/components/ui/sidebar';
 
-export function NavUser({
-                          user
-                        }: {
+interface INavUserProps {
+  className?: string;
   user: {
     name: string
     email: string
     avatar: string
-  }
-}) {
+  };
+}
+
+export const NavUser: FC<INavUserProps> = ({ user }) => {
   const { isMobile } = useSidebar();
 
   return (
@@ -49,7 +50,7 @@ export function NavUser({
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <Avatar className="h-8 w-8 rounded-lg grayscale">
+              <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src={user.avatar} alt={user.name} />
                 <AvatarFallback className="rounded-lg">N</AvatarFallback>
               </Avatar>
@@ -107,4 +108,4 @@ export function NavUser({
       </SidebarMenuItem>
     </SidebarMenu>
   );
-}
+};

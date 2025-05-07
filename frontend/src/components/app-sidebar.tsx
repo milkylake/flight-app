@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import {
-  Command, CreditCardIcon,
+  CreditCardIcon,
   HelpCircleIcon, Plane,
   SettingsIcon, TelescopeIcon, TicketsPlaneIcon,
   UsersIcon
@@ -23,9 +23,9 @@ import {
 
 const data = {
   user: {
-    name: 'Николай',
-    email: 'nikolay@example.com',
-    avatar: '/avatars/shadcn.jpg'
+    name: 'Нурислам Айналиев',
+    email: 'ajnaliev.nz@edu.spbstu.ru',
+    avatar: 'https://github.com/shadcn.png'
   },
   navMain: [
     {

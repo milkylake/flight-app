@@ -1,9 +1,7 @@
-// src/components/DatePicker.tsx (или где он у вас)
-"use client"; // Компонент клиентский
+'use client';
 
-import * as React from 'react';
 import { format } from 'date-fns';
-import { ru } from 'date-fns/locale'; // Импортируем русскую локаль
+import { ru } from 'date-fns/locale';
 import { Calendar as CalendarIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -12,8 +10,9 @@ import { Calendar } from '@/components/ui/calendar';
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
+  PopoverTrigger
 } from '@/components/ui/popover';
+import { FC } from 'react';
 
 interface IDatePickerProps {
   className?: string;
@@ -24,14 +23,16 @@ interface IDatePickerProps {
   fromDate?: Date;
 }
 
-export const DatePicker: React.FC<IDatePickerProps> = ({
-  className,
-  date,
-  setDate,
-  placeholder = "Выберите дату",
-  disabled = false,
-  fromDate,
-}) => {
+export const DatePicker: FC<IDatePickerProps> = (
+  {
+    className,
+    date,
+    setDate,
+    placeholder = 'Выберите дату',
+    disabled = false,
+    fromDate
+  }
+) => {
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -39,25 +40,28 @@ export const DatePicker: React.FC<IDatePickerProps> = ({
           variant={'outline'}
           disabled={disabled}
           className={cn(
-            'w-full justify-start text-left font-normal', // Уберем фикс. ширину w-[280px] для гибкости
+            'w-full justify-start text-left font-normal',
             !date && 'text-muted-foreground',
             className
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {/* Используем русскую локаль для format */}
-          {date ? format(date, 'PPP', { locale: ru }) : <span>{placeholder}</span>}
+          {
+            date
+              ? format(date, 'PPP', { locale: ru })
+              : <span>{placeholder}</span>
+          }
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0">
         <Calendar
-          locale={ru} // Указываем русскую локаль для календаря
+          locale={ru}
           mode="single"
           selected={date}
           onSelect={setDate}
           initialFocus
-          disabled={disabled} // Передаем disabled в календарь
-          fromDate={fromDate} // Устанавливаем минимальную дату
+          disabled={disabled}
+          fromDate={fromDate}
         />
       </PopoverContent>
     </Popover>

@@ -301,8 +301,6 @@ export const Search: FC<ISearchProps> = ({ className, onSearchSubmit }) => {
           </Label>
         </div>
 
-
-        {/* Кнопка поиска */}
         <Button className='' onClick={onSearchSubmit} disabled={!originAirport || !destinationAirport || !departureDate}>
           Найти
         </Button>

@@ -21,18 +21,6 @@ const YandexMap = dynamic(
 );
 
 export default function Page() {
-  const yandexMapsApiKey = process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY;
-
-  console.log(yandexMapsApiKey);
-
-  if (!yandexMapsApiKey || yandexMapsApiKey === 'YOUR_YANDEX_MAPS_API_KEY') {
-    return (
-      <div>
-        Ошибка: Не указан Yandex Maps API Key. Добавьте NEXT_PUBLIC_YANDEX_MAPS_API_KEY в ваш .env.local файл.
-      </div>
-    );
-  }
-
   return (
     <SidebarProvider>
       <AppSidebar variant="inset" />
@@ -40,7 +28,7 @@ export default function Page() {
         <SiteHeader />
         <div className="w-full p-6 flex flex-col gap-4">
           <Search />
-          <YandexMap coordinates={demoCoordinates} apiKey={yandexMapsApiKey} />
+          <YandexMap />
         </div>
         {/*<div className="flex flex-1 flex-col">*/}
         {/*  <div className="@container/main flex flex-1 flex-col gap-2">*/}

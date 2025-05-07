@@ -1,41 +1,46 @@
-import { YMaps, Map, GeoObject, Placemark, ZoomControl, FullscreenControl, useYMaps } from '@pbe/react-yandex-maps';
-import { FC } from 'react'; // Импортируем YMaps и useYMaps
+import { YMaps, Map, GeoObject, Placemark, ZoomControl, FullscreenControl } from '@pbe/react-yandex-maps';
+import { FC } from 'react';
+import { useFlightSearchStore } from '@/store/search.store';
 
-interface Coordinate {
-  lat: number;
-  lng: number;
-}
+export const YandexMap: FC = () => {
+  const { originAirport, destinationAirport } = useFlightSearchStore();
 
-export const YandexMap: FC<{
-  apiKey: string;
-  coordinates: Coordinate[];
-  center?: [number, number];
-  zoom?: number
-}> = ({ apiKey, coordinates, center, zoom }) => {
   return (
     <YMaps>
       <Map
-        defaultState={{ center: [55.76, 37.64], zoom: 3 }}
-        className='w-full h-[600px] border-2 rounded-2xl p-4'
+        defaultState={{ center: [55, 37], zoom: 3 }}
+        className="w-full h-[600px] border-2 rounded-2xl p-4"
       >
-        <GeoObject
+        {originAirport && destinationAirport && <GeoObject
           geometry={{
             type: 'LineString',
             coordinates: [
-              [55.76, 37.64],
-              [52.51, 13.38]
+              [originAirport.latitude, originAirport.longitude],
+              [destinationAirport.latitude, destinationAirport.longitude]
             ]
           }}
           options={{
             geodesic: true,
             strokeWidth: 5,
-            strokeColor: '#F008'
+            strokeColor: '#5186f6'
           }}
-        />
-        <Placemark geometry={[55.76, 37.64]} options={{hasHint: true, openHintOnHover: true}} />
-        <Placemark geometry={[52.51, 13.38]} />
-        <ZoomControl/>
-        <FullscreenControl/>
+        />}
+        {
+          originAirport
+          && <Placemark
+            geometry={[originAirport.latitude, originAirport.longitude]}
+            options={{ preset: 'islands#blueIcon' }}
+          />
+        }
+        {
+          destinationAirport
+          && <Placemark
+            geometry={[destinationAirport.latitude, destinationAirport.longitude]}
+            options={{ preset: 'islands#redIcon' }}
+          />
+        }
+        <ZoomControl />
+        <FullscreenControl />
       </Map>
     </YMaps>
   );

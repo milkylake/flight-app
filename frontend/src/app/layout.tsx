@@ -14,7 +14,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: 'AirBooking - Aynaliev'
+  title: 'AirBooking'
 };
 
 export default function RootLayout(

@@ -1,18 +1,5 @@
 <?php
 
-
-
-
-// fetch('/db-generate.php', { method: 'POST' })
-//   .then(res => res.ok ? res.json() : Promise.reject(res))
-//   .then(data => console.log('DB Generate:', data))
-//   .catch(err => console.error('Error generating DB:', err));
-
-
-
-
-
-
 declare(strict_types=1);
 
 // --- Конфигурация обработки ошибок ---
@@ -306,7 +293,7 @@ try {
         // Рейсы (Flights)
         $flightStmt = $pdo->prepare("INSERT INTO Flights (flight_number, departure_airport_id, arrival_airport_id, departure_time, arrival_time, airline_id, aircraft_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
         $flightCount = 0;
-        $maxFlights = 150;
+        $maxFlights = 500;
         $statuses = ['Scheduled', 'OnTime', 'Delayed', 'Cancelled', 'Departed', 'Arrived']; // Добавим статусы
 
         if (!empty($airportIds) && !empty($airlineIds) && !empty($aircraftIds)) { // Проверка что массивы ID не пусты
@@ -499,17 +486,12 @@ try {
         throw $e;
     }
 
-
-} catch (Exception $e) { // Внешний catch ловит ошибки создания/очистки или переброшенные ошибки вставки
-    $originalErrorMessage = $e->getMessage();
-    // Лог ошибки уже должен был произойти во внутреннем блоке catch
-    error_log("Caught exception in outer block: " . $originalErrorMessage);
-
+} catch (Exception $e) {
     http_response_code(500);
     echo json_encode([
-        'error' => 'Database seeding failed. Check server logs for details.',
-        'details' => $originalErrorMessage // Сообщение исходной ошибки
+        'error' => 'Database seeding failed.',
+        'details' => $e->getMessage()
     ]);
 }
 
-exit; // Завершаем скрипт
+exit;

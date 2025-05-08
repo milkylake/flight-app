@@ -1,29 +1,23 @@
-"use client"; // Делаем компонент клиентским, т.к. используем хуки и обработчики
+'use client';
 
 import { FC, useState, ChangeEvent, FocusEvent } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import { cn } from '@/lib/utils';
-
-// Компоненты Shadcn/ui
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card"; // Для отображения подсказок
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { useFlightSearchStore } from '@/store/search.store';
 import { Airport } from '@/data/types/airport';
-import { DatePicker } from '@/components/ui/date-picker'; // Иконка загрузки
-
-// Наш стор
+import { DatePicker } from '@/components/ui/date-picker';
 
 interface ISearchProps {
   className?: string;
-  onSearchSubmit?: () => void; // Callback для кнопки поиска (опционально)
 }
 
-export const Search: FC<ISearchProps> = ({ className, onSearchSubmit }) => {
-  // Получаем состояние и действия из стора
+export const Search: FC<ISearchProps> = ({ className }) => {
   const {
     originAirport,
     destinationAirport,
@@ -51,11 +45,22 @@ export const Search: FC<ISearchProps> = ({ className, onSearchSubmit }) => {
     fetchDestinationSuggestions,
     selectDestinationSuggestion,
     clearDestinationSuggestions,
+
+    searchFlights, // <<--- Добавляем новое действие
+    foundFlights,  // Можно использовать для отображения результатов или индикации
+    isFlightsLoading,
+    flightsError
   } = useFlightSearchStore();
 
   // Состояние для отображения/скрытия подсказок
   const [showOriginSuggestions, setShowOriginSuggestions] = useState(false);
   const [showDestinationSuggestions, setShowDestinationSuggestions] = useState(false);
+
+  const handleSearchSubmit = () => {
+    searchFlights(); // Вызываем действие из стора
+    // После этого можно, например, перенаправить пользователя на страницу результатов,
+    // или отобразить результаты ниже этой формы.
+  };
 
   // --- Debounce для поиска ---
   const debouncedFetchOrigin = useDebouncedCallback((term: string) => {
@@ -159,14 +164,13 @@ export const Search: FC<ISearchProps> = ({ className, onSearchSubmit }) => {
     setReturnDate(selectedDate ?? null);
   };
 
-  // Получаем сегодняшнюю дату для min Date в DatePicker
   const today = new Date();
-  today.setHours(0, 0, 0, 0); // Убираем время, чтобы сравнивать только даты
-
+  today.setHours(0, 0, 0, 0);
 
   return (
     <div className={cn('relative w-full', className)}> {/* Относительное позиционирование для подсказок */}
-      <div className="flex flex-col md:flex-row gap-4 items-end"> {/* Используем flex-col на мобильных */}
+      {/*<div className="flex flex-col md:flex-row gap-4 items-end"> /!* Используем flex-col на мобильных *!/*/}
+      <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-4 items-end"> {/* Используем flex-col на мобильных */}
         {/* Откуда */}
         <div className="grid w-full items-center gap-1.5 relative">
           <Label htmlFor="from">Откуда</Label>
@@ -273,36 +277,46 @@ export const Search: FC<ISearchProps> = ({ className, onSearchSubmit }) => {
         </div>
 
 
-        {/* Дата возврата (скрыта если isOneWay) */}
-        {!isOneWay && (
-          <div className="grid w-full min-w-[160px] items-center gap-1.5">
-            <Label htmlFor="arrival">Обратно</Label>
-            <DatePicker
-              // id="arrival"
-              date={returnDate ?? undefined}
-              setDate={handleReturnDateSelect}
-              placeholder="Дата возврата"
-              disabled={isOneWay || !departureDate} // Блокируем, если one way ИЛИ не выбрана дата вылета
-              // Минимальная дата - дата вылета или сегодня
-              fromDate={departureDate ? new Date(departureDate) : today}
-            />
-          </div>
-        )}
+        {/* Дата возврата */}
+        <div className="grid w-full min-w-[160px] items-center gap-1.5">
+          <Label htmlFor="arrival">Обратно</Label>
+          <DatePicker
+            // id="arrival"
+            date={returnDate ?? undefined}
+            setDate={handleReturnDateSelect}
+            placeholder="Дата возврата"
+            disabled={isOneWay || !departureDate} // Блокируем, если one way ИЛИ не выбрана дата вылета
+            // Минимальная дата - дата вылета или сегодня
+            fromDate={departureDate ? new Date(departureDate) : today}
+          />
+        </div>
 
         {/* Чекбокс "В одну сторону" */}
-        <div className="flex items-center space-x-2 pt-4 md:pt-0"> {/* Отступ сверху на мобильных */}
+        <div
+          className="flex items-center space-x-2 pt-4 md:pt-0 h-[40px] justify-center"> {/* Отступ сверху на мобильных */}
           <Checkbox
             id="oneWay"
             checked={isOneWay}
             onCheckedChange={(checked) => setIsOneWay(Boolean(checked))}
           />
-          <Label htmlFor="oneWay" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+          <Label htmlFor="oneWay"
+                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
             В одну сторону
           </Label>
         </div>
 
-        <Button className='' onClick={onSearchSubmit} disabled={!originAirport || !destinationAirport || !departureDate}>
-          Найти
+        <Button
+          className=""
+          onClick={handleSearchSubmit}
+          disabled={!originAirport || !destinationAirport || !departureDate || isFlightsLoading}
+        >
+          {isFlightsLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Поиск...
+            </>
+          ) : (
+            'Найти'
+          )}
         </Button>
       </div>
     </div>

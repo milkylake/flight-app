@@ -284,7 +284,7 @@ try {
 
         $flightStmt = $pdo->prepare("INSERT INTO Flights (flight_number, departure_airport_id, arrival_airport_id, departure_time, arrival_time, airline_id, aircraft_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
         $flightCount = 0;
-        $maxFlights = 5000;
+        $maxFlights = 3000;
         $statuses = ['Scheduled', 'OnTime', 'Delayed', 'Cancelled', 'Departed', 'Arrived'];
 
         if (!empty($airportIds) && !empty($airlineIds) && !empty($aircraftIds)) {
@@ -331,108 +331,6 @@ try {
         }
         $logMessages[] = "- Flights созданы: " . $flightCount;
         $flightIds = $pdo->query("SELECT flight_id FROM Flights WHERE status IN ('Scheduled', 'OnTime', 'Delayed', 'Departed')")->fetchAll(PDO::FETCH_COLUMN);
-
-//
-//
-//         $userStmt = $pdo->prepare("INSERT INTO Users (first_name, last_name, email, password_hash, phone_number) VALUES (?, ?, ?, ?, ?)");
-//         $userIds = [];
-//         for ($i=0; $i<20; $i++) { // Увеличим количество пользователей
-//             $firstName = $faker->firstName;
-//             $lastName = $faker->lastName;
-//             $email = $faker->unique()->safeEmail;
-//             $passwordHash = password_hash('password123', PASSWORD_DEFAULT); // Используем хеширование!
-//             $phone = $faker->optional(0.8)->phoneNumber; // Телефон у 80%
-//             $userStmt->execute([$firstName, $lastName, $email, $passwordHash, $phone]);
-//             $userIds[] = $pdo->lastInsertId();
-//         }
-//         $logMessages[] = "- Users созданы: " . count($userIds);
-//
-//
-//
-//         $passengerStmt = $pdo->prepare("INSERT INTO Passengers (first_name, last_name, date_of_birth, passport_number) VALUES (?, ?, ?, ?)");
-//         $passengerIds = [];
-//         for ($i=0; $i<50; $i++) { // Увеличим количество пассажиров
-//             $firstName = $faker->firstName;
-//             $lastName = $faker->lastName;
-//             $dob = $faker->dateTimeBetween('-80 years', '-1 year')->format('Y-m-d'); // Шире диапазон дат рождения
-//             $passport = $faker->optional(0.7)->bothify('## ######'); // Паспорт у 70%
-//             $passengerStmt->execute([$firstName, $lastName, $dob, $passport]);
-//             $passengerIds[] = $pdo->lastInsertId();
-//         }
-//         $logMessages[] = "- Passengers seeded: " . count($passengerIds);
-//
-//
-//
-//         $bookingStmt = $pdo->prepare("INSERT INTO Bookings (user_id, booking_reference, total_amount, status) VALUES (?, ?, ?, ?)");
-//         $ticketStmt = $pdo->prepare("INSERT INTO Tickets (booking_id, passenger_id, flight_id, seat_number, class, price, ticket_number, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-//         $bookingCount = 0;
-//         $ticketCount = 0;
-//         $maxBookings = 80; // Увеличим количество броней
-//         $bookingStatuses = ['PendingPayment', 'Confirmed', 'Cancelled'];
-//         $ticketStatuses = ['Issued', 'Cancelled', 'CheckedIn', 'Boarded']; // Добавим статусы
-//         $classes = ['Economy', 'PremiumEconomy', 'Business', 'First'];
-//
-//         if (!empty($userIds) && !empty($passengerIds) && !empty($flightIds)) { // Проверка что есть ID для связей
-//             for ($i = 0; $i < $maxBookings; $i++) {
-//                 $userId = $faker->randomElement($userIds);
-//                 $bookingRef = $faker->unique()->regexify('[A-Z0-9]{6}');
-//                 $bookingStatus = $faker->randomElement($bookingStatuses);
-//                 $totalAmount = 0; // Рассчитаем
-//
-//                 $bookingStmt->execute([$userId, $bookingRef, 0, $bookingStatus]);
-//                 $bookingId = $pdo->lastInsertId();
-//                 $bookingCount++;
-//
-//                 $numTickets = $faker->numberBetween(1, 5); // До 5 билетов
-//                 $currentFlightId = $faker->randomElement($flightIds); // Рейс для всей брони
-//                 $passengersInBooking = $faker->randomElements($passengerIds, $numTickets); // Уникальные пассажиры для брони
-//
-//                 foreach ($passengersInBooking as $passengerId) {
-//                     $seat = $faker->optional(0.9)->regexify('[1-4]\d[A-F]'); // Место у 90%
-//                     $class = $faker->randomElement($classes);
-//                     $price = $faker->randomFloat(2, 3000, 80000); // Увеличим макс. цену
-//                     $ticketNumber = $faker->unique()->numerify('#########'); // Уникальный номер билета
-//                     $ticketStatus = 'Cancelled'; // По умолчанию
-//
-//                     if ($bookingStatus === 'Confirmed') {
-//                          // Если бронь подтверждена, билет может быть выписан, зарегистрирован или посажен
-//                          // (В зависимости от статуса рейса)
-//                         $flightStatusStmt = $pdo->prepare("SELECT status FROM Flights WHERE flight_id = ?");
-//                         $flightStatusStmt->execute([$currentFlightId]);
-//                         $currentFlightStatus = $flightStatusStmt->fetchColumn();
-//
-//                         if ($currentFlightStatus === 'Departed' || $currentFlightStatus === 'Arrived') {
-//                              $ticketStatus = $faker->randomElement(['CheckedIn', 'Boarded']);
-//                         } elseif ($currentFlightStatus === 'Scheduled' || $currentFlightStatus === 'OnTime' || $currentFlightStatus === 'Delayed') {
-//                              $ticketStatus = $faker->randomElement(['Issued', 'CheckedIn']);
-//                         } else { // Cancelled
-//                              $ticketStatus = 'Cancelled';
-//                         }
-//                     } elseif ($bookingStatus === 'PendingPayment') {
-//                         // Если оплата ожидается, статус билета не может быть Issued/CheckedIn/Boarded
-//                          $ticketStatus = $faker->randomElement(['Cancelled']); // Или какой-то 'Pending' статус, если бы он был
-//                     } else { // Booking Cancelled
-//                          $ticketStatus = 'Cancelled';
-//                     }
-//
-//
-//                     $ticketStmt->execute([$bookingId, $passengerId, $currentFlightId, $seat, $class, $price, $ticketNumber, $ticketStatus]);
-//                     // Добавляем стоимость только для не отмененных билетов и броней
-//                     if ($bookingStatus !== 'Cancelled' && $ticketStatus !== 'Cancelled') {
-//                         $totalAmount += $price;
-//                     }
-//                     $ticketCount++;
-//                 }
-//
-//                 // Обновляем сумму бронирования
-//                 $updateBookingStmt = $pdo->prepare("UPDATE Bookings SET total_amount = ? WHERE booking_id = ?");
-//                 $updateBookingStmt->execute([$totalAmount, $bookingId]);
-//             }
-//         } else {
-//             $logMessages[] = "- WARNING: пропуск создания Bookings/Tickets. User, Passenger, Flight IDs пусты";
-//         }
-//         $logMessages[] = "- Bookings seeded: " . $bookingCount;
-//         $logMessages[] = "- Tickets seeded: " . $ticketCount;
 
 
 
